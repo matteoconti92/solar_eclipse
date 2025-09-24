@@ -1,0 +1,55 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Es ist nur eine einzelne Instanz erlaubt."
+    },
+    "step": {
+      "user": {
+        "title": "Solar Eclipse Prediction",
+        "data": {
+          "install_skyfield": "Skyfield verwenden",
+          "num_events": "Anzahl der anzuzeigenden Finsternisse",
+          "update_hour": "Tägliche Aktualisierungszeit (Ortszeit)"
+        }
+      },
+      "coords": {
+        "title": "Standort",
+        "data": {
+          "latitude": "Breitengrad",
+          "longitude": "Längengrad"
+        }
+      },
+      "region": {
+        "title": "Region",
+        "data": {
+          "region": "Geographic Region of Eclipse Visibility"
+        }
+      }
+    },
+    "options": {
+      "step": {
+        "choice": {
+          "title": "Optionen",
+          "data": {
+            "install_skyfield": "Skyfield verwenden",
+            "num_events": "Anzahl der anzuzeigenden Finsternisse",
+            "update_hour": "Tägliche Aktualisierungszeit (Ortszeit)"
+          }
+        },
+        "coords": {
+          "title": "Standort",
+          "data": {
+            "latitude": "Breitengrad",
+            "longitude": "Längengrad"
+          }
+        },
+        "region": {
+          "title": "Region",
+          "data": {
+            "region": "Geographic Region of Eclipse Visibility"
+          }
+        }
+      }
+    }
+  }
+}
