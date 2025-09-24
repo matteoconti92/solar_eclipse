@@ -103,3 +103,4 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 ---
 
 ## License
+Apache License 2.0 — see `LICENSE.txt`.
