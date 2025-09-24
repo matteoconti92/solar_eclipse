@@ -98,7 +98,7 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 ## Credits
 - **Data** → Eclipse predictions by NASA/GSFC  
 - **Astronomy** → [Skyfield](https://rhodesmill.org/skyfield/)  
-- **Author** → [@<your-user>](https://github.com/<your-user>)  
+- **Author** → [@<your-user>](https://github.com/matteoconti92)  
 
 ---
 
