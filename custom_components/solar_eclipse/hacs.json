@@ -1,8 +1,13 @@
 {
   "name": "Solar Eclipse Prediction",
+  "display_name": "Solar Eclipse Prediction",
+  "description": "Home Assistant custom integration that provides sensors for upcoming solar eclipses with optional Skyfield calculation.",
   "homeassistant": "2023.8.0",
   "render_readme": true,
-  "content_in_root": false,
+  "content_in_root": true,
   "zip_release": false,
+  "category": "integration",
+  "type": "integration",
+  "tags": ["solar", "eclipse", "astronomy", "sensor"],
   "icon": "https://raw.githubusercontent.com/matteoconti92/solar_eclipse/main/icon.png"
 }
