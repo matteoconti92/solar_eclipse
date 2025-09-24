@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" alt="Solar Eclipse Prediction" width="140" />
+  <img src="https://raw.githubusercontent.com/matteoconti92/solar_eclipse/main/icon.png" alt="Solar Eclipse Prediction" width="140" />
 </p>
 
 <h1 align="center">Solar Eclipse Prediction</h1>
