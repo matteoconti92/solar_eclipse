@@ -1,0 +1,11 @@
+{
+  "name": "Solar Eclipse",
+  "display_name": "Solar Eclipse Advanced",
+  "description": "Home Assistant custom integration that provides sensors for upcoming solar eclipses with optional Skyfield calculation.",
+  "documentation": "https://github.com/matteoconti92/solar_eclipse",
+  "category": "integration",
+  "type": "integration",
+  "homeassistant": "2024.6.0",
+  "tags": ["solar", "eclipse", "astronomy", "sensor"],
+  "zip_release": false
+}
