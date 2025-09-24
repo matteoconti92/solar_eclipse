@@ -1,0 +1,55 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Solo se permite una única instancia."
+    },
+    "step": {
+      "user": {
+        "title": "Solar Eclipse Prediction",
+        "data": {
+          "install_skyfield": "Usar Skyfield",
+          "num_events": "Número de eclipses a mostrar",
+          "update_hour": "Hora de actualización diaria (hora local)"
+        }
+      },
+      "coords": {
+        "title": "Ubicación",
+        "data": {
+          "latitude": "Latitud",
+          "longitude": "Longitud"
+        }
+      },
+      "region": {
+        "title": "Región",
+        "data": {
+          "region": "Geographic Region of Eclipse Visibility"
+        }
+      }
+    },
+    "options": {
+      "step": {
+        "choice": {
+          "title": "Opciones",
+          "data": {
+            "install_skyfield": "Usar Skyfield",
+            "num_events": "Número de eclipses a mostrar",
+            "update_hour": "Hora de actualización diaria (hora local)"
+          }
+        },
+        "coords": {
+          "title": "Ubicación",
+          "data": {
+            "latitude": "Latitud",
+            "longitude": "Longitud"
+          }
+        },
+        "region": {
+          "title": "Región",
+          "data": {
+            "region": "Geographic Region of Eclipse Visibility"
+          }
+        }
+      }
+    }
+  }
+}
