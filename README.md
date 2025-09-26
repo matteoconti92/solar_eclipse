@@ -79,9 +79,11 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 
 ---
 
+## Eclipse Card Example
 
-## Card Example
+A minimal Apple-style card showing details of an eclipse using `markdown-card` and `card-mod`.
 
+```yaml
 type: markdown
 content: |
   <h3>🌒 Eclipse 1</h3>
@@ -109,7 +111,6 @@ card_mod:
       text-align: center;
       margin: 4px 0;
     }
-
 
 ---
 
