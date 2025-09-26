@@ -113,6 +113,11 @@ card_mod:
     }
 ```
 
+<p align="center">
+  <img src="path/to/screenshot.png" alt="Eclipse Card Preview" width="400">
+</p>
+
+
 ---
 
 ## Troubleshooting
