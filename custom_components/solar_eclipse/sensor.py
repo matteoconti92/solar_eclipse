@@ -627,7 +627,7 @@ class EclipseDaysUntilSensor(CoordinatorEntity[EclipseCoordinator], SensorEntity
             name="Solar Eclipse",
             manufacturer="Eclipse predictions by NASA/GSFC",
             model="Solar Eclipse Advanced",
-            sw_version="0.2.0",
+            sw_version=VERSION,
         )
 
     @property
