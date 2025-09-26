@@ -114,7 +114,7 @@ card_mod:
 ```
 
 <p align="center">
-  <img src="main/Screenshot.png" alt="Eclipse Card Preview" width="400">
+  <img src="solar_eclipse/Screenshot.png" alt="Eclipse Card Preview" width="400">
 </p>
 
 
