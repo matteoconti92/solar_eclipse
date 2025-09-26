@@ -79,6 +79,40 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 
 ---
 
+
+## Card Example
+
+type: markdown
+content: |
+  <h3>🌒 Eclipse 1</h3>
+  <p><strong>Type:</strong> {{ state_attr('sensor.eclipse_1_date', 'type') | capitalize }}</p>
+  <p><strong>Region:</strong> {{ state_attr('sensor.eclipse_1_date', 'region') | capitalize }}</p>
+  <p>Start: <strong>{{ state_attr('sensor.eclipse_1_date', 'start_time') }}</strong><br>
+     Maximum: <strong>{{ state_attr('sensor.eclipse_1_date', 'maximum_time') }}</strong><br>
+     End: <strong>{{ state_attr('sensor.eclipse_1_date', 'end_time') }}</strong><br>
+     Coverage: <strong>{{ state_attr('sensor.eclipse_1_date', 'local_max_coverage_percent') }}%</strong>
+  </p>
+card_mod:
+  style: |
+    ha-card {
+      border-radius: 18px;
+      padding: 20px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h3, p, strong {
+      text-align: center;
+      margin: 4px 0;
+    }
+
+
+---
+
 ## Troubleshooting
 - **“Using minimal fallback list” in logs** → NASA catalog unreachable or changed. Check access to:  
   - `https://eclipse.gsfc.nasa.gov/SEdecade/`  
