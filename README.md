@@ -79,29 +79,6 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 
 ---
 
-## Troubleshooting
-- **“Using minimal fallback list” in logs** → NASA catalog unreachable or changed. Check access to:  
-  - `https://eclipse.gsfc.nasa.gov/SEdecade/`  
-- **Unknown states** → if fewer than N eclipses are visible soon, some slots remain empty until future events are found.  
-
----
-
-## Data Sources
-- NASA/GSFC decade catalogs:  
-  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2021.html  
-  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2031.html  
-  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2041.html  
-- JSEX index (regional): https://eclipse.gsfc.nasa.gov/JSEX/JSEX-index.html  
-
----
-
-## Credits
-- **Data** → Eclipse predictions by NASA/GSFC  
-- **Astronomy** → [Skyfield](https://rhodesmill.org/skyfield/)  
-- **Author** → [@<your-user>](https://github.com/matteoconti92)  
-
----
-
 ## Eclipse Card Example
 
 A minimal Apple-style card showing details of an eclipse using `markdown-card` and `card-mod`.
@@ -134,6 +111,30 @@ card_mod:
       text-align: center;
       margin: 4px 0;
     }
+```yaml
+
+---
+
+## Troubleshooting
+- **“Using minimal fallback list” in logs** → NASA catalog unreachable or changed. Check access to:  
+  - `https://eclipse.gsfc.nasa.gov/SEdecade/`  
+- **Unknown states** → if fewer than N eclipses are visible soon, some slots remain empty until future events are found.  
+
+---
+
+## Data Sources
+- NASA/GSFC decade catalogs:  
+  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2021.html  
+  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2031.html  
+  - https://eclipse.gsfc.nasa.gov/SEdecade/SEdecade2041.html  
+- JSEX index (regional): https://eclipse.gsfc.nasa.gov/JSEX/JSEX-index.html  
+
+---
+
+## Credits
+- **Data** → Eclipse predictions by NASA/GSFC  
+- **Astronomy** → [Skyfield](https://rhodesmill.org/skyfield/)  
+- **Author** → [@<your-user>](https://github.com/matteoconti92)  
 
 ---
 
