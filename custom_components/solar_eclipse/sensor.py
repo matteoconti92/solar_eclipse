@@ -11,6 +11,7 @@ from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -428,6 +429,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     region: str = entry.options.get("region", entry.data.get("region", "Europe"))
     num_events: int = entry.options.get("num_events", entry.data.get("num_events", DEFAULT_NUM_EVENTS))
     update_hour: int = entry.options.get("update_hour", entry.data.get("update_hour", DEFAULT_UPDATE_HOUR))
+
+    # Best-effort cleanup: remove stale Eclipse N sensors if num_events was reduced
+    try:
+        registry = er.async_get(hass)
+        for ent in list(registry.entities.values()):
+            if ent.config_entry_id != entry.entry_id:
+                continue
+            # Match sensors created with unique_id pattern: {entry_id}_eclipse{N}_date
+            m = re.match(rf"{re.escape(entry.entry_id)}_eclipse(\d+)_date$", ent.unique_id)
+            if not m:
+                continue
+            idx = int(m.group(1))
+            if idx > int(num_events):
+                registry.async_remove(ent.entity_id)
+    except Exception:
+        # Ignore cleanup errors; entities can also be removed manually
+        pass
 
     coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events)
     # Kick off first refresh in background to avoid blocking platform setup
