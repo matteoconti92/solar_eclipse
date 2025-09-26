@@ -430,7 +430,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     update_hour: int = entry.options.get("update_hour", entry.data.get("update_hour", DEFAULT_UPDATE_HOUR))
 
     coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events)
-    await coordinator.async_config_entry_first_refresh()
+    # Kick off first refresh in background to avoid blocking platform setup
+    hass.async_create_task(coordinator.async_config_entry_first_refresh())
 
     entities: List[SensorEntity] = []
     for index in range(num_events):
