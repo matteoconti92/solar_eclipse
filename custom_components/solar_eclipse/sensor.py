@@ -553,8 +553,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ui_lang = getattr(hass.config, "language", None)
     if isinstance(ui_lang, str) and ui_lang:
         await coordinator.async_load_translations(ui_lang)
-    # Kick off first refresh in background to avoid blocking platform setup
-    hass.async_create_task(coordinator.async_config_entry_first_refresh())
+    # Perform first refresh now to provide a linear setup flow
+    await coordinator.async_config_entry_first_refresh()
 
     entities: List[SensorEntity] = []
     for index in range(num_events):
@@ -562,7 +562,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     # Days until next eclipse
     entities.append(EclipseDaysUntilSensor(coordinator, entry))
 
-    async_add_entities(entities)
+    # Force a pre-add update so Skyfield attributes are computed before entities appear
+    async_add_entities(entities, update_before_add=True)
 
 
 class EclipseBaseEntity(CoordinatorEntity[EclipseCoordinator], SensorEntity):
@@ -667,17 +668,29 @@ class EclipseAggregateSensor(EclipseBaseEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
+        # Try an immediate compute if ephemeris already loaded, otherwise wait for coordinator update
         if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self.coordinator._ephemeris is not None:
             await self._recompute()
-            self._unsub_midnight = async_track_time_change(
-                self.hass, lambda now: self.hass.async_create_task(self._recompute()), hour=self._update_hour, minute=0, second=0
-            )
         else:
+            # Ensure state is available even before heavy data
             self._cached_coverage = None
             self._cached_local_max_time = None
             self._cached_local_max_coverage = None
             self._cached_start_local = None
             self._cached_end_local = None
+            self.async_write_ha_state()
+        # Schedule daily recompute at configured hour
+        self._unsub_midnight = async_track_time_change(
+            self.hass, lambda now: self.hass.async_create_task(self._recompute()), hour=self._update_hour, minute=0, second=0
+        )
+
+    def _handle_coordinator_update(self) -> None:
+        super()._handle_coordinator_update()
+        # When coordinator finishes first refresh and/or ephemeris loads, recompute attributes
+        if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self.coordinator._ephemeris is not None:
+            self.hass.async_create_task(self._recompute())
+        else:
+            # Write base state so date updates propagate
             self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
