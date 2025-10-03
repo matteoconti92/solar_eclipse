@@ -1,7 +1,7 @@
 {
   "domain": "solar_eclipse",
   "name": "Solar Eclipse Prediction",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "documentation": "https://github.com/matteoconti92/solar_eclipse",
   "requirements": [
     "skyfield>=1.49",
