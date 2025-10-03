@@ -22,7 +22,7 @@
       "region": {
         "title": "Regione",
         "data": {
-          "region": "Geographic Region of Eclipse Visibility"
+          "region": "Regione geografica di visibilità dell'eclissi"
         }
       }
     },
@@ -46,10 +46,28 @@
         "region": {
           "title": "Regione",
           "data": {
-            "region": "Geographic Region of Eclipse Visibility"
+            "region": "Regione geografica di visibilità dell'eclissi"
           }
         }
       }
+    }
+  },
+  "attr": {
+    "region": {
+      "Global": "Globale",
+      "Africa": "Africa",
+      "Asia": "Asia",
+      "Europe": "Europa",
+      "North America": "Nord America",
+      "South America": "Sud America",
+      "Oceania": "Oceania",
+      "Antarctica": "Antartide"
+    },
+    "type": {
+      "Total": "Totale",
+      "Annular": "Anulare",
+      "Partial": "Parziale",
+      "Hybrid": "Ibrida"
     }
   }
 }

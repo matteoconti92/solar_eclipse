@@ -51,5 +51,23 @@
         }
       }
     }
+  },
+  "attr": {
+    "region": {
+      "Global": "Global",
+      "Africa": "Africa",
+      "Asia": "Asia",
+      "Europe": "Europe",
+      "North America": "North America",
+      "South America": "South America",
+      "Oceania": "Oceania",
+      "Antarctica": "Antarctica"
+    },
+    "type": {
+      "Total": "Total",
+      "Annular": "Annular",
+      "Partial": "Partial",
+      "Hybrid": "Hybrid"
+    }
   }
 }

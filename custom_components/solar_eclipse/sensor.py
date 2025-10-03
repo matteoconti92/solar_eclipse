@@ -12,12 +12,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     CoordinatorEntity,
 )
-from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_change
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, NASA_DECADE_URLS, ATTRIBUTION, SUPPORTED_REGIONS, JSEX_INDEX_URL, JSEX_REGION_LABELS, ECLIPSE_FALLBACK, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION
@@ -30,6 +31,88 @@ try:
 except Exception:  # pragma: no cover - fallback when not installed
     SKYFIELD_AVAILABLE = False
 
+
+# Simple i18n maps for attribute values (best-effort; keys are not localized by HA)
+_REGION_I18N = {
+    "en": {
+        "Global": "Global",
+        "Africa": "Africa",
+        "Asia": "Asia",
+        "Europe": "Europe",
+        "North America": "North America",
+        "South America": "South America",
+        "Oceania": "Oceania",
+        "Antarctica": "Antarctica",
+    },
+    "it": {
+        "Global": "Globale",
+        "Africa": "Africa",
+        "Asia": "Asia",
+        "Europe": "Europa",
+        "North America": "Nord America",
+        "South America": "Sud America",
+        "Oceania": "Oceania",
+        "Antarctica": "Antartide",
+    },
+    "de": {
+        "Global": "Global",
+        "Africa": "Afrika",
+        "Asia": "Asien",
+        "Europe": "Europa",
+        "North America": "Nordamerika",
+        "South America": "Südamerika",
+        "Oceania": "Ozeanien",
+        "Antarctica": "Antarktis",
+    },
+    "es": {
+        "Global": "Global",
+        "Africa": "África",
+        "Asia": "Asia",
+        "Europe": "Europa",
+        "North America": "Norteamérica",
+        "South America": "Sudamérica",
+        "Oceania": "Oceanía",
+        "Antarctica": "Antártida",
+    },
+    "fr": {
+        "Global": "Global",
+        "Africa": "Afrique",
+        "Asia": "Asie",
+        "Europe": "Europe",
+        "North America": "Amérique du Nord",
+        "South America": "Amérique du Sud",
+        "Oceania": "Océanie",
+        "Antarctica": "Antarctique",
+    },
+}
+
+_TYPE_I18N = {
+    "en": {"Total": "Total", "Annular": "Annular", "Partial": "Partial", "Hybrid": "Hybrid"},
+    "it": {"Total": "Totale", "Annular": "Anulare", "Partial": "Parziale", "Hybrid": "Ibrida"},
+    "de": {"Total": "Total", "Annular": "Ringförmig", "Partial": "Partiell", "Hybrid": "Hybrid"},
+    "es": {"Total": "Total", "Annular": "Anular", "Partial": "Parcial", "Hybrid": "Híbrido"},
+    "fr": {"Total": "Totale", "Annular": "Annulaire", "Partial": "Partielle", "Hybrid": "Hybride"},
+}
+
+def _attr_lang(hass: HomeAssistant) -> str:
+    # HA server-side may not expose UI language; best effort using config or fallback to 'en'
+    lang = getattr(hass.config, "language", None) or getattr(hass.config, "units", None)
+    # If units object, ignore. Return 'en' as default
+    if isinstance(lang, str) and len(lang) >= 2:
+        return lang.split("-")[0].lower()
+    return "en"
+
+def _t_region(hass: HomeAssistant, region: Optional[str]) -> Optional[str]:
+    if not region:
+        return region
+    lang = _attr_lang(hass)
+    return _REGION_I18N.get(lang, _REGION_I18N["en"]).get(region, region)
+
+def _t_type(hass: HomeAssistant, typ: Optional[str]) -> Optional[str]:
+    if not typ:
+        return typ
+    lang = _attr_lang(hass)
+    return _TYPE_I18N.get(lang, _TYPE_I18N["en"]).get(typ, typ)
 
 @dataclass
 class EclipseEvent:
@@ -63,6 +146,24 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
         self.skyfield_dir = hass.config.path(".storage/solar_eclipse_skyfield")
         # Limit concurrent Skyfield computations (CPU/RAM)
         self._sf_semaphore = asyncio.Semaphore(3)
+        # Loaded UI translations for value localization
+        self._translations: dict[str, str] = {}
+        self._lang: Optional[str] = None
+
+    async def async_load_translations(self, lang: str) -> None:
+        try:
+            self._translations = await async_get_translations(self.hass, lang, f"component.{DOMAIN}")
+            self._lang = lang
+        except Exception:
+            self._translations = {}
+            self._lang = None
+
+    def translate_value(self, category: str, value: Optional[str]) -> Optional[str]:
+        if not value:
+            return value
+        # Lookup key: component.<domain>.attr.<category>.<value>
+        key = f"component.{DOMAIN}.attr.{category}.{value}"
+        return self._translations.get(key, value)
 
     def _load_ephemeris_sync(self):
         # Runs in executor thread; uses dedicated directory
@@ -448,6 +549,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         pass
 
     coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events)
+    # Load translations for current UI language (best effort)
+    ui_lang = getattr(hass.config, "language", None)
+    if isinstance(ui_lang, str) and ui_lang:
+        await coordinator.async_load_translations(ui_lang)
     # Kick off first refresh in background to avoid blocking platform setup
     hass.async_create_task(coordinator.async_config_entry_first_refresh())
 
@@ -514,10 +619,13 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         # Region, Type, Coverage Percent, Local Max Time, Local max coverage percent, Source, ... (others follow)
         attrs = {}
         # Region
-        attrs["region"] = self.coordinator.region
+        # Translate via loaded translations; fallback to internal map
+        translated_region = self.coordinator.translate_value("region", self.coordinator.region)
+        attrs["region"] = _t_region(self.hass, translated_region)
         # Type (if event present)
         if event:
-            attrs["type"] = event.type
+            translated_type = self.coordinator.translate_value("type", event.type)
+            attrs["type"] = _t_type(self.hass, translated_type)
         # Skyfield-derived attributes with % formatting
         if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE:
             # Do NOT expose 'coverage_percent' and 'local_max_time' per user request

@@ -1,15 +1,15 @@
 {
   "config": {
     "abort": {
-      "single_instance_allowed": "Es ist nur eine einzelne Instanz erlaubt."
+      "single_instance_allowed": "Es ist nur eine Instanz zulässig."
     },
     "step": {
       "user": {
         "title": "Solar Eclipse Prediction",
         "data": {
           "install_skyfield": "Skyfield verwenden",
-          "num_events": "Anzahl der anzuzeigenden Finsternisse",
-          "update_hour": "Tägliche Aktualisierungszeit (Ortszeit)"
+          "num_events": "Anzahl anzuzeigender Verfinsterungen",
+          "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)"
         }
       },
       "coords": {
@@ -22,7 +22,7 @@
       "region": {
         "title": "Region",
         "data": {
-          "region": "Geographic Region of Eclipse Visibility"
+          "region": "Geografische Sichtbarkeitsregion der Sonnenfinsternis"
         }
       }
     },
@@ -32,8 +32,8 @@
           "title": "Optionen",
           "data": {
             "install_skyfield": "Skyfield verwenden",
-            "num_events": "Anzahl der anzuzeigenden Finsternisse",
-            "update_hour": "Tägliche Aktualisierungszeit (Ortszeit)"
+            "num_events": "Anzahl anzuzeigender Verfinsterungen",
+            "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)"
           }
         },
         "coords": {
@@ -46,10 +46,28 @@
         "region": {
           "title": "Region",
           "data": {
-            "region": "Geographic Region of Eclipse Visibility"
+            "region": "Geografische Sichtbarkeitsregion der Sonnenfinsternis"
           }
         }
       }
+    }
+  },
+  "attr": {
+    "region": {
+      "Global": "Global",
+      "Africa": "Afrika",
+      "Asia": "Asien",
+      "Europe": "Europa",
+      "North America": "Nordamerika",
+      "South America": "Südamerika",
+      "Oceania": "Ozeanien",
+      "Antarctica": "Antarktis"
+    },
+    "type": {
+      "Total": "Total",
+      "Annular": "Ringförmig",
+      "Partial": "Partiell",
+      "Hybrid": "Hybrid"
     }
   }
 }

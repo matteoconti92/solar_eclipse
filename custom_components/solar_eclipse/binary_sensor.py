@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 
-from .const import DOMAIN, ATTRIBUTION, NASA_DECADE_URLS, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR
+from .const import DOMAIN, ATTRIBUTION, NASA_DECADE_URLS, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION
 from .sensor import EclipseCoordinator, EclipseEvent, SKYFIELD_AVAILABLE  # reuse coordinator
 
 
