@@ -665,12 +665,19 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             translated_type = self.coordinator.translate_value("type", event.type)
             attrs["type"] = _t_type(self.hass, translated_type)
         # Skyfield-derived attributes with % formatting
+        self.coordinator.logger.debug("Checking Skyfield attributes: install=%s avail=%s ephemeris=%s", 
+                                     self.coordinator.install_skyfield, SKYFIELD_AVAILABLE, self.coordinator._ephemeris is not None)
+        self.coordinator.logger.debug("Cached values: coverage=%s duration=%s max_coverage=%s", 
+                                     self._cached_coverage, self._cached_duration_minutes, self._cached_local_max_coverage)
+        
         if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE:
             # Do NOT expose 'coverage_percent' and 'local_max_time' per user request
             if self._cached_local_max_coverage is not None:
                 attrs["local_max_coverage_percent"] = f"{self._cached_local_max_coverage:.1f}%"
             if self._cached_duration_minutes is not None:
                 attrs["duration_minutes"] = f"{self._cached_duration_minutes:.1f}"
+        else:
+            self.coordinator.logger.debug("Skyfield disabled or unavailable - skipping computed attributes")
         # Time-only attributes (HH:MM in HA local timezone)
         if event:
             tz = dt_util.get_time_zone(self.hass.config.time_zone)
@@ -694,6 +701,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
                 attrs["maximum_time"] = mt
             if et is not None:
                 attrs["end_time"] = et
+            self.coordinator.logger.debug("Time attributes: start=%s max=%s end=%s", st, mt, et)
         # Source then attribution
         attrs["source"] = NASA_DECADE_URLS[0]
         attrs["attribution"] = ATTRIBUTION
@@ -732,6 +740,9 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         else:
             # Write base state so date updates propagate
             self.async_write_ha_state()
+        
+        # Also update status sensor
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         await super().async_will_remove_from_hass()
