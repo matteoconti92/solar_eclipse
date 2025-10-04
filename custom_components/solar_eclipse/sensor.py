@@ -553,8 +553,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ui_lang = getattr(hass.config, "language", None)
     if isinstance(ui_lang, str) and ui_lang:
         await coordinator.async_load_translations(ui_lang)
-    # Perform first refresh now to provide a linear setup flow
-    await coordinator.async_config_entry_first_refresh()
+    # Kick off first refresh in background to avoid blocking platform setup
+    hass.async_create_task(coordinator.async_config_entry_first_refresh())
 
     entities: List[SensorEntity] = []
     for index in range(num_events):
@@ -562,8 +562,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     # Days until next eclipse
     entities.append(EclipseDaysUntilSensor(coordinator, entry))
 
-    # Force a pre-add update so Skyfield attributes are computed before entities appear
-    async_add_entities(entities, update_before_add=True)
+    async_add_entities(entities)
+
+    # Schedule attribute computation once data and ephemeris are available
+    async def _ensure_attributes_computed():
+        try:
+            # Give coordinator time to load ephemeris
+            await asyncio.sleep(2.0)
+            # Wait for coordinator data
+            await coordinator.async_request_refresh()
+            # If Skyfield is enabled, compute attributes on all sensors
+            if coordinator.install_skyfield and SKYFIELD_AVAILABLE and coordinator._ephemeris is not None:
+                for entity in entities:
+                    if hasattr(entity, '_recompute'):
+                        await entity._recompute()
+        except Exception:
+            pass  # Best effort; don't block setup
+
+    hass.async_create_task(_ensure_attributes_computed())
 
 
 class EclipseBaseEntity(CoordinatorEntity[EclipseCoordinator], SensorEntity):
