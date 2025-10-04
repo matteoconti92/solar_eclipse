@@ -571,11 +571,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             await asyncio.sleep(2.0)
             # Wait for coordinator data
             await coordinator.async_request_refresh()
-            # If Skyfield is enabled, compute attributes on all sensors
-            if coordinator.install_skyfield and SKYFIELD_AVAILABLE and coordinator._ephemeris is not None:
-                for entity in entities:
-                    if hasattr(entity, '_recompute'):
+        # If Skyfield is enabled, compute attributes on all sensors
+        if coordinator.install_skyfield and SKYFIELD_AVAILABLE and coordinator._ephemeris is not None:
+            coordinator.logger.info("Triggering Skyfield attribute computation for %s entities", len([e for e in entities if hasattr(e, '_recompute')]))
+            for entity in entities:
+                if hasattr(entity, '_recompute'):
+                    try:
                         await entity._recompute()
+                    except Exception as err:
+                        coordinator.logger.error("Skyfield recompute failed for %s: %s", entity.name, err)
+        else:
+            coordinator.logger.warning("Skyfield attributes not computed - install: %s, available: %s, ephemeris: %s", 
+                                     coordinator.install_skyfield, SKYFIELD_AVAILABLE, coordinator._ephemeris is not None)
         except Exception:
             pass  # Best effort; don't block setup
 
@@ -748,9 +755,12 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             return
         lat = float(self.coordinator.latitude)
         lon = float(self.coordinator.longitude)
+        self.coordinator.logger.debug("Computing Skyfield attributes for %s at %.4f,%.4f", event.identifier, lat, lon)
         cov_now = await self.coordinator.async_calculate_coverage_percent(event.date, lat, lon)
         local = await self.coordinator.async_find_local_maximum(event.date, lat, lon)
         contacts = await self.coordinator.async_find_contact_times(event.date, lat, lon)
+        self.coordinator.logger.debug("Skyfield results: coverage=%.2f%%, local_max_coverage=%.2f%%, contacts=%s", 
+                                    cov_now or 0, local[1] if local else 0, contacts[0] if contacts else None)
         self._cached_coverage = cov_now
         if local:
             self._cached_local_max_time = local[0]
