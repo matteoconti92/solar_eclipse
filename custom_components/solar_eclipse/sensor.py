@@ -176,6 +176,8 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
         if not self.install_skyfield or not SKYFIELD_AVAILABLE or self._ephemeris is not None:
             return
         try:
+            # Load ephemeris in background thread to avoid blocking
+            self.logger.info("Loading Skyfield ephemeris (de421) in background...")
             self._ephemeris = await self.hass.async_add_executor_job(self._load_ephemeris_sync)
             self.logger.info("Skyfield ephemeris loaded (de421).")
         except Exception as err:
@@ -202,7 +204,7 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
         delay = 1.0
         for attempt in range(3):
             try:
-                async with session.get(url, timeout=30, headers=headers) as resp:
+                async with session.get(url, timeout=10, headers=headers) as resp:
                     if resp.status != 200:
                         self.logger.debug("Fetch %s returned HTTP %s (attempt %s)", url, resp.status, attempt + 1)
                         raise RuntimeError(f"HTTP {resp.status}")
