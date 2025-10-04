@@ -630,6 +630,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         self._cached_local_max_coverage: Optional[float] = None
         self._cached_start_local: Optional[datetime] = None
         self._cached_end_local: Optional[datetime] = None
+        self._cached_duration_minutes: Optional[float] = None
         self._unsub_midnight = None
         self._update_hour = int(update_hour)
         # Throttling state
@@ -661,6 +662,8 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             # Do NOT expose 'coverage_percent' and 'local_max_time' per user request
             if self._cached_local_max_coverage is not None:
                 attrs["local_max_coverage_percent"] = f"{self._cached_local_max_coverage:.1f}%"
+            if self._cached_duration_minutes is not None:
+                attrs["duration_minutes"] = f"{self._cached_duration_minutes:.1f}"
         # Time-only attributes (HH:MM in HA local timezone)
         if event:
             tz = dt_util.get_time_zone(self.hass.config.time_zone)
@@ -707,6 +710,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             self._cached_local_max_coverage = None
             self._cached_start_local = None
             self._cached_end_local = None
+            self._cached_duration_minutes = None
             self.async_write_ha_state()
         # Schedule daily recompute at configured hour
         self._unsub_midnight = async_track_time_change(
@@ -745,6 +749,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             self._cached_local_max_coverage = None
             self._cached_start_local = None
             self._cached_end_local = None
+            self._cached_duration_minutes = None
             self._last_recompute_day = today
             self._last_event_identifier = None
             self.async_write_ha_state()
@@ -755,6 +760,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             self._cached_local_max_coverage = None
             self._cached_start_local = None
             self._cached_end_local = None
+            self._cached_duration_minutes = None
             self._last_recompute_day = today
             self._last_event_identifier = event.identifier
             self.async_write_ha_state()
@@ -776,9 +782,16 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             self._cached_local_max_coverage = None
         if contacts:
             self._cached_start_local, self._cached_end_local = contacts
+            # Calculate duration in minutes
+            try:
+                duration_delta = self._cached_end_local - self._cached_start_local
+                self._cached_duration_minutes = duration_delta.total_seconds() / 60.0
+            except Exception:
+                self._cached_duration_minutes = None
         else:
             self._cached_start_local = None
             self._cached_end_local = None
+            self._cached_duration_minutes = None
         self._last_recompute_day = today
         self._last_event_identifier = event.identifier
         self.async_write_ha_state()

@@ -68,6 +68,9 @@
       "Annular": "Annulaire",
       "Partial": "Partielle",
       "Hybrid": "Hybride"
+    },
+    "duration": {
+      "label": "Durée (minutes)"
     }
   }
 }

@@ -68,6 +68,9 @@
       "Annular": "Ringförmig",
       "Partial": "Partiell",
       "Hybrid": "Hybrid"
+    },
+    "duration": {
+      "label": "Dauer (Minuten)"
     }
   }
 }
