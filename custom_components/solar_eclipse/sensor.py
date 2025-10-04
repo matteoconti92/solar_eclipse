@@ -555,40 +555,44 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ui_lang = getattr(hass.config, "language", None)
     if isinstance(ui_lang, str) and ui_lang:
         await coordinator.async_load_translations(ui_lang)
-    # Kick off first refresh in background to avoid blocking platform setup
-    hass.async_create_task(coordinator.async_config_entry_first_refresh())
-
     entities: List[SensorEntity] = []
     for index in range(num_events):
         entities.append(EclipseAggregateSensor(coordinator, entry, index, update_hour))
     # Days until next eclipse
     entities.append(EclipseDaysUntilSensor(coordinator, entry))
 
+    # Register entities first so they exist
     async_add_entities(entities)
 
-    # Schedule attribute computation once data and ephemeris are available
-    async def _ensure_attributes_computed():
-        try:
-            # Give coordinator time to load ephemeris
-            await asyncio.sleep(2.0)
-            # Wait for coordinator data
-            await coordinator.async_request_refresh()
-        # If Skyfield is enabled, compute attributes on all sensors
-        if coordinator.install_skyfield and SKYFIELD_AVAILABLE and coordinator._ephemeris is not None:
-            coordinator.logger.info("Triggering Skyfield attribute computation for %s entities", len([e for e in entities if hasattr(e, '_recompute')]))
+    # Perform complete setup: wait for initial data, ephemeris, and attribute computation
+    coordinator.logger.info("Starting complete Solar Eclipse setup...")
+    
+    # Wait for coordinator to get initial data
+    await coordinator.async_config_entry_first_refresh()
+    coordinator.logger.info("Coordinator data loaded")
+    
+    # If Skyfield is enabled, ensure ephemeris is loaded and compute all attributes
+    if coordinator.install_skyfield and SKYFIELD_AVAILABLE:
+        coordinator.logger.info("Loading Skyfield ephemeris and computing attributes...")
+        
+        # Ensure ephemeris is loaded
+        await coordinator._async_setup_skyfield()
+        
+        if coordinator._ephemeris is not None:
+            coordinator.logger.info("Computing Skyfield attributes for all entities...")
             for entity in entities:
                 if hasattr(entity, '_recompute'):
                     try:
                         await entity._recompute()
                     except Exception as err:
                         coordinator.logger.error("Skyfield recompute failed for %s: %s", entity.name, err)
+            coordinator.logger.info("Solar Eclipse setup completed with Skyfield attributes")
         else:
-            coordinator.logger.warning("Skyfield attributes not computed - install: %s, available: %s, ephemeris: %s", 
-                                     coordinator.install_skyfield, SKYFIELD_AVAILABLE, coordinator._ephemeris is not None)
-        except Exception:
-            pass  # Best effort; don't block setup
-
-    hass.async_create_task(_ensure_attributes_computed())
+            coordinator.logger.warning("Skyfield setup incomplete - ephemeris failed to load")
+    else:
+        coordinator.logger.info("Solar Eclipse setup completed (Skyfield disabled or unavailable)")
+    
+    coordinator.logger.info("Solar Eclipse integration setup fully completed")
 
 
 class EclipseBaseEntity(CoordinatorEntity[EclipseCoordinator], SensorEntity):
