@@ -653,32 +653,23 @@ class EclipseAggregateSensor(EclipseBaseEntity):
     @property
     def extra_state_attributes(self):
         event = self._event
-        # Build attributes in requested order:
-        # Region, Type, Coverage Percent, Local Max Time, Local max coverage percent, Source, ... (others follow)
+        # Build attributes in requested order: type, coverage, start_time, maximum_time, end_time, duration, region, source
         attrs = {}
-        # Region
-        # Translate via loaded translations; fallback to internal map
-        translated_region = self.coordinator.translate_value("region", self.coordinator.region)
-        attrs["region"] = _t_region(self.hass, translated_region)
-        # Type (if event present)
+        
+        # 1. Type (if event present)
         if event:
             translated_type = self.coordinator.translate_value("type", event.type)
             attrs["type"] = _t_type(self.hass, translated_type)
-        # Skyfield-derived attributes with % formatting
+        # 2. Coverage (Skyfield-derived)
+        if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self._cached_local_max_coverage is not None:
+            attrs["coverage"] = f"{self._cached_local_max_coverage:.1f}%"
+        
+        # Debug logging
         self.coordinator.logger.debug("Checking Skyfield attributes: install=%s avail=%s ephemeris=%s", 
                                      self.coordinator.install_skyfield, SKYFIELD_AVAILABLE, self.coordinator._ephemeris is not None)
         self.coordinator.logger.debug("Cached values: coverage=%s duration=%s max_coverage=%s", 
                                      self._cached_coverage, self._cached_duration_minutes, self._cached_local_max_coverage)
-        
-        if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE:
-            # Do NOT expose 'coverage_percent' and 'local_max_time' per user request
-            if self._cached_local_max_coverage is not None:
-                attrs["local_max_coverage_percent"] = f"{self._cached_local_max_coverage:.1f}%"
-            if self._cached_duration_minutes is not None:
-                attrs["duration_minutes"] = f"{self._cached_duration_minutes:.1f}"
-        else:
-            self.coordinator.logger.debug("Skyfield disabled or unavailable - skipping computed attributes")
-        # Time-only attributes (HH:MM in HA local timezone)
+        # 3-5. Time attributes (HH:MM in HA local timezone)
         if event:
             tz = dt_util.get_time_zone(self.hass.config.time_zone)
             def fmt_time(dt_val):
@@ -702,7 +693,16 @@ class EclipseAggregateSensor(EclipseBaseEntity):
             if et is not None:
                 attrs["end_time"] = et
             self.coordinator.logger.debug("Time attributes: start=%s max=%s end=%s", st, mt, et)
-        # Source then attribution
+        
+        # 6. Duration (Skyfield-derived)
+        if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self._cached_duration_minutes is not None:
+            attrs["duration"] = f"{self._cached_duration_minutes:.1f}"
+        
+        # 7. Region
+        translated_region = self.coordinator.translate_value("region", self.coordinator.region)
+        attrs["region"] = _t_region(self.hass, translated_region)
+        
+        # 8. Source
         attrs["source"] = NASA_DECADE_URLS[0]
         attrs["attribution"] = ATTRIBUTION
         # Optional NASA hints if available (appended after core fields)

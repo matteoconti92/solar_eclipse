@@ -71,6 +71,24 @@
     },
     "duration": {
       "label": "Durata (minuti)"
+    },
+    "coverage": {
+      "label": "Copertura"
+    },
+    "start_time": {
+      "label": "Ora Inizio"
+    },
+    "maximum_time": {
+      "label": "Ora Massima"
+    },
+    "end_time": {
+      "label": "Ora Fine"
+    },
+    "region": {
+      "label": "Regione"
+    },
+    "source": {
+      "label": "Fonte"
     }
   }
 }
