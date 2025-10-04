@@ -560,6 +560,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         entities.append(EclipseAggregateSensor(coordinator, entry, index, update_hour))
     # Days until next eclipse
     entities.append(EclipseDaysUntilSensor(coordinator, entry))
+    # Setup status tracking
+    entities.append(EclipseSetupStatusSensor(coordinator, entry))
 
     # Register entities first so they exist
     async_add_entities(entities)
@@ -591,6 +593,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             coordinator.logger.warning("Skyfield setup incomplete - ephemeris failed to load")
     else:
         coordinator.logger.info("Solar Eclipse setup completed (Skyfield disabled or unavailable)")
+    
+    # Final setup status update for all status sensors
+    for entity in entities:
+        if isinstance(entity, EclipseSetupStatusSensor):
+            entity.async_write_ha_state()
     
     coordinator.logger.info("Solar Eclipse integration setup fully completed")
 
@@ -795,6 +802,42 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         self._last_recompute_day = today
         self._last_event_identifier = event.identifier
         self.async_write_ha_state()
+
+
+class EclipseSetupStatusSensor(CoordinatorEntity[EclipseCoordinator], SensorEntity):
+    _attr_name = "Solar Eclipse Setup Status"
+    _attr_icon = "mdi:loading"
+    _attr_should_poll = False
+
+    def __init__(self, coordinator: EclipseCoordinator, entry: ConfigEntry) -> None:
+        super().__init__(coordinator)
+        self.entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_setup_status"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="Solar Eclipse",
+            manufacturer="Eclipse predictions by NASA/GSFC",
+            model="Solar Eclipse Advanced",
+            sw_version=VERSION,
+        )
+
+    @property
+    def native_value(self) -> str:
+        """Return setup status."""
+        if not self.coordinator.data:
+            return "Loading data..."
+        if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self.coordinator._ephemeris is None:
+            return "Loading Skyfield..."
+        return "Ready"
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "data_loaded": bool(self.coordinator.data),
+            "skyfield_installed": self.coordinator.install_skyfield and SKYFIELD_AVAILABLE,
+            "ephemeris_loaded": self.coordinator._ephemeris is not None,
+            "features_available": bool(self.coordinator.data) and (not self.coordinator.install_skyfield or self.coordinator._ephemeris is not None)
+        }
 
 
 class EclipseDaysUntilSensor(CoordinatorEntity[EclipseCoordinator], SensorEntity):
