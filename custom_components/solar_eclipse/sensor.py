@@ -372,20 +372,23 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
                         self.logger.debug("Local max calc failed for %s: %s", evt.identifier, err)
                         return 0.0
 
-            # Scan future events in batches until 3 visible are found
+            # Scan future events in batches until num_events visible are found (>= 10% coverage)
             visible: List[EclipseEvent] = []
             batch_size = 25
             max_scan = len(future)
+            self.logger.info("Filtering eclipses with >= 10%% coverage from %d future events", len(future))
             for start_idx in range(0, max_scan, batch_size):
                 batch = future[start_idx:start_idx + batch_size]
                 if not batch:
                     break
                 coverages = await asyncio.gather(*(local_max_cov(e) for e in batch), return_exceptions=False)
                 for e, c in zip(batch, coverages):
-                    if c and c > 0.0:
+                    if c and c >= 10.0:  # Filter eclipses with >= 10% coverage
                         visible.append(e)
                         if len(visible) >= self.num_events:
+                            self.logger.info("Found %d eclipses with >= 10%% coverage (requested: %d)", len(visible), self.num_events)
                             return visible[: self.num_events]
+            self.logger.info("Found %d eclipses with >= 10%% coverage (requested: %d)", len(visible), self.num_events)
             return visible[: self.num_events]
 
         if future:
@@ -696,7 +699,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         
         # 6. Duration (Skyfield-derived)
         if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self._cached_duration_minutes is not None:
-            attrs["duration"] = f"{self._cached_duration_minutes:.1f}"
+            attrs["duration"] = f"{int(self._cached_duration_minutes)}"
         
         # 7. Region
         translated_region = self.coordinator.translate_value("region", self.coordinator.region)
@@ -817,7 +820,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
 
 class EclipseSetupStatusSensor(CoordinatorEntity[EclipseCoordinator], SensorEntity):
     _attr_name = "Solar Eclipse Setup Status"
-    _attr_icon = "mdi:loading"
+    _attr_icon = "mdi:network"
     _attr_should_poll = False
 
     def __init__(self, coordinator: EclipseCoordinator, entry: ConfigEntry) -> None:
