@@ -9,7 +9,8 @@
         "data": {
           "install_skyfield": "Skyfield verwenden",
           "num_events": "Anzahl anzuzeigender Verfinsterungen",
-          "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)"
+          "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)",
+          "min_coverage": "Minimale Abdeckung (%)"
         }
       },
       "coords": {
@@ -33,7 +34,8 @@
           "data": {
             "install_skyfield": "Skyfield verwenden",
             "num_events": "Anzahl anzuzeigender Verfinsterungen",
-            "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)"
+            "update_hour": "Tägliche Aktualisierungsstunde (Ortszeit)",
+            "min_coverage": "Minimale Abdeckung (%)"
           }
         },
         "coords": {
@@ -68,27 +70,22 @@
       "Annular": "Ringförmig",
       "Partial": "Partiell",
       "Hybrid": "Hybrid"
-    },
-    "duration": {
-      "label": "Dauer (Minuten)"
-    },
-    "coverage": {
-      "label": "Abdeckung"
-    },
-    "start_time": {
-      "label": "Startzeit"
-    },
-    "maximum_time": {
-      "label": "Maximale Zeit"
-    },
-    "end_time": {
-      "label": "Endzeit"
-    },
-    "region": {
-      "label": "Region"
-    },
-    "source": {
-      "label": "Quelle"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "eclipse": {
+        "state_attributes": {
+          "type": { "name": "Typ" },
+          "coverage": { "name": "Abdeckung" },
+          "start_time": { "name": "Startzeit" },
+          "maximum_time": { "name": "Maximale Zeit" },
+          "end_time": { "name": "Endzeit" },
+          "duration": { "name": "Dauer (Minuten)" },
+          "region": { "name": "Region" },
+          "source": { "name": "Quelle" }
+        }
+      }
     }
   }
 }

@@ -9,7 +9,8 @@
         "data": {
           "install_skyfield": "Utiliser Skyfield",
           "num_events": "Nombre d'éclipses à afficher",
-          "update_hour": "Heure de mise à jour quotidienne (heure locale)"
+          "update_hour": "Heure de mise à jour quotidienne (heure locale)",
+          "min_coverage": "Seuil de couverture minimum (%)"
         }
       },
       "coords": {
@@ -33,7 +34,8 @@
           "data": {
             "install_skyfield": "Utiliser Skyfield",
             "num_events": "Nombre d'éclipses à afficher",
-            "update_hour": "Heure de mise à jour quotidienne (heure locale)"
+            "update_hour": "Heure de mise à jour quotidienne (heure locale)",
+            "min_coverage": "Seuil de couverture minimum (%)"
           }
         },
         "coords": {
@@ -68,27 +70,22 @@
       "Annular": "Annulaire",
       "Partial": "Partielle",
       "Hybrid": "Hybride"
-    },
-    "duration": {
-      "label": "Durée (minutes)"
-    },
-    "coverage": {
-      "label": "Couverture"
-    },
-    "start_time": {
-      "label": "Heure de Début"
-    },
-    "maximum_time": {
-      "label": "Heure Maximale"
-    },
-    "end_time": {
-      "label": "Heure de Fin"
-    },
-    "region": {
-      "label": "Région"
-    },
-    "source": {
-      "label": "Source"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "eclipse": {
+        "state_attributes": {
+          "type": { "name": "Type" },
+          "coverage": { "name": "Couverture" },
+          "start_time": { "name": "Heure de Début" },
+          "maximum_time": { "name": "Heure Maximale" },
+          "end_time": { "name": "Heure de Fin" },
+          "duration": { "name": "Durée (minutes)" },
+          "region": { "name": "Région" },
+          "source": { "name": "Source" }
+        }
+      }
     }
   }
 }
