@@ -141,7 +141,7 @@ card_mod:
 ## Credits
 - **Data** → Eclipse predictions by NASA/GSFC  
 - **Astronomy** → [Skyfield](https://rhodesmill.org/skyfield/)  
-- **Author** → [@<your-user>](https://github.com/matteoconti92)  
+- **Author** → matteoconti92(https://github.com/matteoconti92)  
 
 ---
 
