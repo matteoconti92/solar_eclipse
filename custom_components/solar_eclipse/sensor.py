@@ -21,7 +21,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, NASA_DECADE_URLS, ATTRIBUTION, SUPPORTED_REGIONS, JSEX_INDEX_URL, JSEX_REGION_LABELS, ECLIPSE_FALLBACK, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION
+from .const import DOMAIN, NASA_DECADE_URLS, ATTRIBUTION, SUPPORTED_REGIONS, JSEX_INDEX_URL, JSEX_REGION_LABELS, ECLIPSE_FALLBACK, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION, DEFAULT_MIN_COVERAGE
 
 # Optional Skyfield imports (declared in manifest requirements)
 try:
@@ -125,7 +125,7 @@ class EclipseEvent:
 
 
 class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
-    def __init__(self, hass: HomeAssistant, install_skyfield: bool, latitude: float, longitude: float, region: str, num_events: int):
+    def __init__(self, hass: HomeAssistant, install_skyfield: bool, latitude: float, longitude: float, region: str, num_events: int, min_coverage: int):
         super().__init__(
             hass,
             logger=logging.getLogger(__name__),
@@ -137,6 +137,7 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
         self.longitude = longitude
         self.region = region if region in SUPPORTED_REGIONS else "Global"
         self.num_events = max(1, min(10, int(num_events)))
+        self.min_coverage = max(0.0, min(100.0, float(min_coverage)))
         self._ephemeris = None
         # In-memory cache (24h TTL)
         self._cache_events: Optional[List[EclipseEvent]] = None
@@ -372,23 +373,23 @@ class EclipseCoordinator(DataUpdateCoordinator[List[EclipseEvent]]):
                         self.logger.debug("Local max calc failed for %s: %s", evt.identifier, err)
                         return 0.0
 
-            # Scan future events in batches until num_events visible are found (>= 10% coverage)
+            # Scan future events until num_events visible are found (>= configured coverage)
             visible: List[EclipseEvent] = []
             batch_size = 25
             max_scan = len(future)
-            self.logger.info("Filtering eclipses with >= 10%% coverage from %d future events", len(future))
+            self.logger.info("Filtering eclipses with >= %.1f%% coverage from %d future events", self.min_coverage, len(future))
             for start_idx in range(0, max_scan, batch_size):
                 batch = future[start_idx:start_idx + batch_size]
                 if not batch:
                     break
                 coverages = await asyncio.gather(*(local_max_cov(e) for e in batch), return_exceptions=False)
                 for e, c in zip(batch, coverages):
-                    if c and c >= 10.0:  # Filter eclipses with >= 10% coverage
+                    if c and c >= self.min_coverage:  # Filter eclipses with >= configured coverage
                         visible.append(e)
                         if len(visible) >= self.num_events:
-                            self.logger.info("Found %d eclipses with >= 10%% coverage (requested: %d)", len(visible), self.num_events)
+                            self.logger.info("Found %d eclipses with >= %.1f%% coverage (requested: %d)", len(visible), self.min_coverage, self.num_events)
                             return visible[: self.num_events]
-            self.logger.info("Found %d eclipses with >= 10%% coverage (requested: %d)", len(visible), self.num_events)
+            self.logger.info("Found %d eclipses with >= %.1f%% coverage (requested: %d)", len(visible), self.min_coverage, self.num_events)
             return visible[: self.num_events]
 
         if future:
@@ -535,6 +536,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     region: str = entry.options.get("region", entry.data.get("region", "Europe"))
     num_events: int = entry.options.get("num_events", entry.data.get("num_events", DEFAULT_NUM_EVENTS))
     update_hour: int = entry.options.get("update_hour", entry.data.get("update_hour", DEFAULT_UPDATE_HOUR))
+    min_coverage: int = entry.options.get("min_coverage", entry.data.get("min_coverage", DEFAULT_MIN_COVERAGE))
 
     # Best-effort cleanup: remove stale Eclipse N sensors if num_events was reduced
     try:
@@ -553,7 +555,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         # Ignore cleanup errors; entities can also be removed manually
         pass
 
-    coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events)
+    coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events, min_coverage)
     # Load translations for current UI language (best effort)
     ui_lang = getattr(hass.config, "language", None)
     if isinstance(ui_lang, str) and ui_lang:
@@ -635,6 +637,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         self._attr_unique_id = f"{entry.entry_id}_eclipse{index+1}_date"
         self._attr_name = f"Eclipse {index+1} Date"
         self._attr_icon = "mdi:moon-waning-crescent"
+        self._attr_translation_key = "eclipse"
         self._cached_coverage: Optional[float] = None
         self._cached_local_max_time: Optional[datetime] = None
         self._cached_local_max_coverage: Optional[float] = None
@@ -699,7 +702,7 @@ class EclipseAggregateSensor(EclipseBaseEntity):
         
         # 6. Duration (Skyfield-derived)
         if self.coordinator.install_skyfield and SKYFIELD_AVAILABLE and self._cached_duration_minutes is not None:
-            attrs["duration"] = f"{int(self._cached_duration_minutes)}"
+            attrs["duration"] = f"{int(self._cached_duration_minutes)} min"
         
         # 7. Region
         translated_region = self.coordinator.translate_value("region", self.coordinator.region)

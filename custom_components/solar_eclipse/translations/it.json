@@ -9,7 +9,8 @@
         "data": {
           "install_skyfield": "Usa Skyfield",
           "num_events": "Numero di eclissi da mostrare",
-          "update_hour": "Ora di aggiornamento giornaliero (ora locale)"
+          "update_hour": "Ora di aggiornamento giornaliero (ora locale)",
+          "min_coverage": "Soglia minima di copertura (%)"
         }
       },
       "coords": {
@@ -33,7 +34,8 @@
           "data": {
             "install_skyfield": "Usa Skyfield",
             "num_events": "Numero di eclissi da mostrare",
-            "update_hour": "Ora di aggiornamento giornaliero (ora locale)"
+          "update_hour": "Ora di aggiornamento giornaliero (ora locale)",
+          "min_coverage": "Soglia minima di copertura (%)"
           }
         },
         "coords": {
@@ -68,27 +70,23 @@
       "Annular": "Anulare",
       "Partial": "Parziale",
       "Hybrid": "Ibrida"
-    },
-    "duration": {
-      "label": "Durata (minuti)"
-    },
-    "coverage": {
-      "label": "Copertura"
-    },
-    "start_time": {
-      "label": "Ora Inizio"
-    },
-    "maximum_time": {
-      "label": "Ora Massima"
-    },
-    "end_time": {
-      "label": "Ora Fine"
-    },
-    "region": {
-      "label": "Regione"
-    },
-    "source": {
-      "label": "Fonte"
+    }
+  }
+  ,
+  "entity": {
+    "sensor": {
+      "eclipse": {
+        "state_attributes": {
+          "type": { "name": "Tipo" },
+          "coverage": { "name": "Copertura" },
+          "start_time": { "name": "Ora Inizio" },
+          "maximum_time": { "name": "Ora Massima" },
+          "end_time": { "name": "Ora Fine" },
+          "duration": { "name": "Durata (minuti)" },
+          "region": { "name": "Regione" },
+          "source": { "name": "Fonte" }
+        }
+      }
     }
   }
 }

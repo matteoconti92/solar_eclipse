@@ -25,6 +25,7 @@ ECLIPSE_FALLBACK = [
 	{"identifier": "2026-08-12", "type": "Total", "time_utc": "17:00"},
 	{"identifier": "2027-08-02", "type": "Total", "time_utc": "10:08"},
 ]
-VERSION = "0.3.6"
+VERSION = "1.0.0"
 DEFAULT_NUM_EVENTS = 3
 DEFAULT_UPDATE_HOUR = 1
+DEFAULT_MIN_COVERAGE = 10
