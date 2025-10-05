@@ -38,24 +38,26 @@ Primary data source: **NASA/GSFC decade catalogs** + optional local calculations
 ---
 
 ## Configuration
-- **Skyfield mode**  
-  - ON → asks for latitude/longitude (local visibility & coverage computed).  
-  - OFF → asks for a “Geographic Region of Eclipse Visibility”.  
-- **Number of eclipses** → integer 1–10 (default 3).  
-- **Daily update time** → local hour in HH:MM format (minutes ignored).  
-- Options can be reconfigured anytime without removing the entry.  
+- **Use Skyfield**: enable precise local calculations at your coordinates.  
+  - If ON: provide **Latitude** and **Longitude** (from HA location by default).  
+  - If OFF: choose a **Geographic Region of Eclipse Visibility** (e.g., Europe).  
+- **Number of eclipses**: integer 1–10 (default: 3).  
+- **Daily update hour**: local time in HH:MM (default: 01:00; minutes ignored).  
+- **Minimum coverage threshold (%)**: 0–100 (default: 10). Only eclipses with local maximum coverage ≥ this value are listed when Skyfield is ON.  
+- All options can be changed later from the integration’s Options without removing it.  
 
 ---
 
 ## Entities
 - `sensor.eclipse_1_date … sensor.eclipse_N_date` (device class: `date`)  
   **Attributes (when available):**
-  - `region`  
-  - `type`  
-  - `local_max_coverage_percent` (e.g., `"45.1%"`) [Skyfield ON]  
-  - `start_time`, `maximum_time`, `end_time` (local time)  
-  - `start`, `end` (UTC dataset times)  
-  - `source`, `attribution`  
+  - `type`
+  - `coverage` (e.g., `"90.2%"`) [Skyfield ON]
+  - `start_time`, `maximum_time`, `end_time` (local time) [Skyfield ON]
+  - `duration` (e.g., `"134 min"`) [Skyfield ON]
+  - `region`
+  - `source`, `attribution`
+  - `start`, `end` (UTC dataset times; when present in source data)
 - `sensor.days_until_next_eclipse` (`mdi:calendar-end`)  
 - `binary_sensor.eclipse_this_week` (`mdi:telescope`)  
 
@@ -92,7 +94,7 @@ content: |
   <p>Start: <strong>{{ state_attr('sensor.eclipse_1_date', 'start_time') }}</strong><br>
      Maximum: <strong>{{ state_attr('sensor.eclipse_1_date', 'maximum_time') }}</strong><br>
      End: <strong>{{ state_attr('sensor.eclipse_1_date', 'end_time') }}</strong><br>
-     Coverage: <strong>{{ state_attr('sensor.eclipse_1_date', 'coverage') }}</strong>
+     Coverage: <strong>{{ state_attr('sensor.eclipse_1_date', 'local_max_coverage_percent') }}</strong>
   </p>
 card_mod:
   style: |
