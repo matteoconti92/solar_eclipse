@@ -92,7 +92,7 @@ content: |
   <p>Start: <strong>{{ state_attr('sensor.eclipse_1_date', 'start_time') }}</strong><br>
      Maximum: <strong>{{ state_attr('sensor.eclipse_1_date', 'maximum_time') }}</strong><br>
      End: <strong>{{ state_attr('sensor.eclipse_1_date', 'end_time') }}</strong><br>
-     Coverage: <strong>{{ state_attr('sensor.eclipse_1_date', 'local_max_coverage_percent') }}</strong>
+     Coverage: <strong>{{ state_attr('sensor.eclipse_1_date', 'coverage') }}</strong>
   </p>
 card_mod:
   style: |
