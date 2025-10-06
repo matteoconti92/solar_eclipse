@@ -571,40 +571,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     # Register entities first so they exist
     async_add_entities(entities)
 
-    # Perform complete setup: wait for initial data, ephemeris, and attribute computation
-    coordinator.logger.info("Starting complete Solar Eclipse setup...")
-    
-    # Wait for coordinator to get initial data
-    await coordinator.async_config_entry_first_refresh()
-    coordinator.logger.info("Coordinator data loaded")
-    
-    # If Skyfield is enabled, ensure ephemeris is loaded and compute all attributes
-    if coordinator.install_skyfield and SKYFIELD_AVAILABLE:
-        coordinator.logger.info("Loading Skyfield ephemeris and computing attributes...")
-        
-        # Ensure ephemeris is loaded
-        await coordinator._async_setup_skyfield()
-        
-        if coordinator._ephemeris is not None:
-            coordinator.logger.info("Computing Skyfield attributes for all entities...")
+    # Kick off initial refresh and optional Skyfield computations in background to avoid blocking setup
+    async def _post_setup() -> None:
+        try:
+            coordinator.logger.info("Starting background initialization for Solar Eclipse...")
+            await coordinator.async_config_entry_first_refresh()
+            coordinator.logger.info("Coordinator data loaded")
+            if coordinator.install_skyfield and SKYFIELD_AVAILABLE:
+                coordinator.logger.info("Loading Skyfield ephemeris and computing attributes...")
+                await coordinator._async_setup_skyfield()
+                if coordinator._ephemeris is not None:
+                    for entity in entities:
+                        if hasattr(entity, '_recompute'):
+                            try:
+                                await entity._recompute()
+                            except Exception as err:
+                                coordinator.logger.error("Skyfield recompute failed for %s: %s", entity.name, err)
+                    coordinator.logger.info("Background initialization completed with Skyfield attributes")
+                else:
+                    coordinator.logger.warning("Skyfield setup incomplete - ephemeris failed to load")
+            # Final setup status update for all status sensors
             for entity in entities:
-                if hasattr(entity, '_recompute'):
-                    try:
-                        await entity._recompute()
-                    except Exception as err:
-                        coordinator.logger.error("Skyfield recompute failed for %s: %s", entity.name, err)
-            coordinator.logger.info("Solar Eclipse setup completed with Skyfield attributes")
-        else:
-            coordinator.logger.warning("Skyfield setup incomplete - ephemeris failed to load")
-    else:
-        coordinator.logger.info("Solar Eclipse setup completed (Skyfield disabled or unavailable)")
-    
-    # Final setup status update for all status sensors
-    for entity in entities:
-        if isinstance(entity, EclipseSetupStatusSensor):
-            entity.async_write_ha_state()
-    
-    coordinator.logger.info("Solar Eclipse integration setup fully completed")
+                if isinstance(entity, EclipseSetupStatusSensor):
+                    entity.async_write_ha_state()
+            coordinator.logger.info("Solar Eclipse background initialization completed")
+        except Exception as err:
+            coordinator.logger.error("Background initialization failed: %s", err)
+
+    hass.async_create_task(_post_setup())
 
 
 class EclipseBaseEntity(CoordinatorEntity[EclipseCoordinator], SensorEntity):

@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 
-from .const import DOMAIN, ATTRIBUTION, NASA_DECADE_URLS, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION
+from .const import DOMAIN, ATTRIBUTION, NASA_DECADE_URLS, DEFAULT_NUM_EVENTS, DEFAULT_UPDATE_HOUR, VERSION, DEFAULT_MIN_COVERAGE
 from .sensor import EclipseCoordinator, EclipseEvent, SKYFIELD_AVAILABLE  # reuse coordinator
 
 
@@ -19,8 +19,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     region: str = entry.options.get("region", entry.data.get("region", "Europe"))
     num_events: int = entry.options.get("num_events", entry.data.get("num_events", DEFAULT_NUM_EVENTS))
     update_hour: int = entry.options.get("update_hour", entry.data.get("update_hour", DEFAULT_UPDATE_HOUR))
+    min_coverage: int = entry.options.get("min_coverage", entry.data.get("min_coverage", DEFAULT_MIN_COVERAGE))
 
-    coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events)
+    coordinator = EclipseCoordinator(hass, install_skyfield, latitude, longitude, region, num_events, min_coverage)
     # Kick off first refresh in background to avoid blocking platform setup
     hass.async_create_task(coordinator.async_config_entry_first_refresh())
 
